@@ -1,0 +1,30 @@
+#!/bin/dash
+
+if [ "$#" -gt 0 ]
+    then
+    echo "Usage: $0" >&2
+    exit 1
+else 
+    :
+fi
+
+
+if test -d .pig
+then
+    :
+else 
+    echo "$0: error: pigs repository directory .pig not found" >&2
+    exit 1
+fi
+
+cd .pig || return
+tac "$(realpath -e list_commits)" > list_log
+
+input="$(realpath -e list_log)" > /dev/null
+
+while read -r line
+do 
+    echo "$line"
+done < "$input"
+
+exit 0

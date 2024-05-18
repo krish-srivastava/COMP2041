@@ -1,0 +1,13 @@
+#!/bin/dash
+
+if test -d .pig
+then
+    echo "$0: error: .pig already exists" >&2
+    exit 1
+else
+    mkdir ".pig"
+    chmod 755 ".pig"
+    cd ".pig" || return
+    echo "Initialized empty pigs repository in .pig"
+    exit 0
+fi

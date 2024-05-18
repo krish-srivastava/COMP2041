@@ -1,0 +1,116 @@
+#!/bin/dash
+
+original_check() {
+    flag=0
+
+    for file in *
+    do
+    dest_path=$(find "$pig_path" -type f -name "$file" -not -path "$pig_path/index/*")
+        cmp "$file" "$dest_path" >/dev/null 2>&1
+        result=$?
+        if [ $result -eq 0 ]
+        then
+            :
+        else 
+            flag=1
+        fi
+    done
+
+    if [ "$flag" -eq 0 ]
+    then 
+        echo "nothing to commit" >&2
+        exit 1
+    else 
+        :
+    fi
+
+}
+
+modified_check() {
+
+    for file in *
+    do
+    dest_path=$(find "$working_directory" -type f -name "$file" -not -path "$pig_path/*")
+        cmp "$file" "$dest_path" >/dev/null 2>&1
+        result=$?
+        if [ $result -eq 0 ]
+        then
+            :
+        else 
+            cp "$dest_path" "$file"
+        fi
+    done
+
+}
+
+commit() {
+    count=$(find . -mindepth 1 -maxdepth 1 -type d | wc -l)
+    count=$(($count - 1))
+    dir_name="Commit $count"
+    mkdir "$dir_name"
+    commit_path="$(realpath "$dir_name")"
+    cd "$index_path" || return
+    for file in *
+    do
+        src_path="$(realpath "$file")"
+        cp "$src_path" "$commit_path"
+    done
+}
+
+if [ "$#" -lt 2 ]
+    then
+    echo "Usage: $0 [-a] -m commit-message" >&2
+    exit 1
+else 
+    :
+fi
+
+if test -d .pig
+then
+    :
+else 
+    echo "$0: error: pigs repository directory .pig not found" >&2
+    exit 1
+fi
+
+working_directory=$(pwd)
+pig_path="$(realpath .pig)"
+cd "$pig_path" || return
+index_path="$(realpath index)"
+
+if [ "$(ls -A "$index_path")" ]
+then
+    :
+else 
+    echo "nothing to commit" >&2
+    exit 1
+fi
+
+touch list_commits
+
+if [ "$1" = "-m" ]
+    then
+    cd $index_path || return
+    original_check
+    cd ..
+    commit
+else 
+    :
+fi
+
+if [ "$1" = "-a" ]
+    then
+    cd $index_path || return
+    modified_check
+    cd ..
+    commit
+else 
+    :
+fi
+
+cd "$commit_path" || return
+cd ..
+echo "Committed as commit $count"
+echo "$count "$2"" >> list_commits
+
+exit 0

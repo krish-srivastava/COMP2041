@@ -1,0 +1,9 @@
+[core]
+	repositoryformatversion = 0
+	fileMode = false
+	bare = false
+	logallrefupdates = true
+	worktree = /import/reed/5/z5420235/COMP2041/ass01/New_Folder
+[user]
+	email = pigs@example.com
+	name = pigs

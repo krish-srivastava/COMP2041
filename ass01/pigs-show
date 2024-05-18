@@ -1,0 +1,64 @@
+#!/bin/dash
+
+if [ "$#" -lt 1 ]
+    then
+    echo "Usage: $0 <commit>:<filename>" >&2
+    exit 1
+else 
+    :
+fi
+
+if test -d .pig
+then
+    :
+else 
+    echo "$0: error: pigs repository directory .pig not found" >&2
+    exit 1
+fi
+
+second_arg="$1"
+file_name=$(echo "$second_arg" | cut -d':' -f2)
+commit_number="$(echo "$second_arg" | cut -d':' -f1)"
+pig_path="$(realpath -e .pig)" 2>/dev/null
+cd $pig_path || return
+index_path="$(realpath -e index)" 2>/dev/null
+cd ..
+
+if [ -z "$commit_number" ]
+then
+    file_path=$(find "$index_path" -type f -name "$file_name" -print -quit)
+    if [ -z "$file_path" ]
+    then
+        echo "$0: error: '""$file_name""' not found in index" >&2
+        exit 1
+    else
+        :
+    fi
+else
+    :
+fi
+
+if echo "$commit_number" | grep -E "^[0-9]+$" > /dev/null
+then
+    commit_file=$(find "$pig_path" -type d -name "Commit $commit_number*")
+    if [ -z "$commit_file" ]
+    then
+        echo "$0: error: unknown commit '$commit_number'" >&2
+        exit 1
+    else 
+        :
+    fi
+    file_path=$(find "$commit_file" -type f -name "$file_name")
+    if [ -z "$file_path" ]
+    then
+        echo "$0: error: '""$file_name""' not found in commit ""$commit_number""" >&2    
+        exit 1
+    else
+        :
+    fi
+else
+    :
+fi
+
+cat "$file_path"
+exit 0

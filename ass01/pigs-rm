@@ -1,0 +1,98 @@
+#!/bin/dash
+
+modified_check() {
+    cd ..
+    working_directory=$(pwd)
+    working_file=$(find "$working_directory" -type f -name "$1" -print -quit)
+    remove_file=$(find "$index_path" -type f -name "$1") 2>/dev/null
+    cmp "$working_file" "$remove_file" >/dev/null 2>&1
+    result=$?
+    if [ $result -eq 1 ]
+    then
+        echo "$0: error: '$1' in the repository is different to the working file" >&2
+        exit 1
+    else
+        :
+    fi
+}
+
+normal_rm() {
+
+    cd $index_path || return
+    for arg in "$@"
+    do
+        if [ $arg="--force" || $arg="--cached" ]
+        then 
+            :
+        else
+            remove_file=$(find "$index_path" -type f -name "$arg") 2>/dev/null
+            if [ -n "$remove_file" ]
+            then 
+                rm "$remove_file"
+            else 
+                :
+            fi
+        fi
+    done
+
+    cd $pig_path || return
+    for arg in "$@"
+    do
+        if [ $arg="--force" || $arg="--cached" ]
+        then 
+            :
+        else 
+            remove_file=$(find "$pig_path" -type f -name "$arg" -not -path "$pig_path/index/*") 2>/dev/null
+            if [ -n "$remove_file" ]
+            then 
+                rm "$remove_file"
+            else 
+                :
+            fi
+        fi
+    done
+}
+
+if [ "$#" -lt 1 ]
+    then
+    echo "Usage: $0 [-a] -m commit-message" >&2
+    exit 1
+else 
+    :
+fi
+
+pig_path="$(realpath -e .pig)" 2>/dev/null
+cd $pig_path || return
+index_path="$(realpath -e index)" 2>/dev/null
+
+if [ "$1" = "--cached" ]
+then
+    for arg in "$@"
+    do
+        cd $index_path || return
+        remove_file="$(realpath -e "$arg")" 2>/dev/null
+        if [ -n "$remove_file" ]
+        then 
+            rm "$remove_file"
+        else 
+            :
+        fi
+    done
+    exit 0
+else 
+    :
+fi
+
+if [ "$1" = "--force" ]
+then
+    normal_rm
+else 
+    :
+fi
+
+for arg in "$@"
+do
+    modified_check "$arg"
+done
+normal_rm
+exit 0

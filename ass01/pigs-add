@@ -1,0 +1,60 @@
+#!/bin/dash
+
+# Check if there are the correct amount of arguments
+if [ "$#" -lt 1 ]
+    then
+    echo "Usage: $0 <filenames>" >&2
+    exit 1
+else 
+    :
+fi
+
+# Check that repo has been created. 
+if test -d .pig
+then
+    :
+else 
+    echo "$0: error: pigs repository directory .pig not found" >&2
+    exit 1
+fi
+
+pig_path="$(realpath -e .pig)" 2>/dev/null
+cd "$pig_path" || return
+
+if test -d index
+then 
+    :
+else 
+    mkdir index
+fi
+
+index_path="$(realpath -e index)" 2>/dev/null
+cd ..
+
+for arg in "$@"
+do
+    src_path="$(realpath -e "$arg")" 2>/dev/null
+    if [ -z "$src_path" ]
+    then
+        src_path=$(find "$index_path" -name "$arg")
+        if [ -e "$src_path" ]
+        then
+            if [ -f "$src_path" ]
+            then
+                rm $src_path
+                exit 0
+            else
+                echo "$0: error: '$arg' is not a regular file" >&2
+                exit 1
+            fi
+        else 
+            echo "$0: error: can not open '$arg'" >&2
+            exit 1
+        fi
+    else
+        :
+    fi
+    cp "$src_path" "$index_path"
+done
+
+exit 0
